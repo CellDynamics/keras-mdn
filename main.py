@@ -4,7 +4,7 @@ from keras.optimizers import Adam
 from keras import objectives
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d, Axes3D #<-- Note the capitalization! 
+from mpl_toolkits.mplot3d import axes3d, Axes3D #<-- Note the capitalization!
 from mdn import *
 
 def generate(output, testSize, numComponents=24, outputDim=1, M=1):

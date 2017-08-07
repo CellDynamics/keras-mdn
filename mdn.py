@@ -1,5 +1,6 @@
 from keras import backend as K
 from keras.engine.topology import Layer
+from keras.initializers import random_normal
 import numpy as np
 import math
 
@@ -51,18 +52,26 @@ class MixtureDensity(Layer):
 
     def build(self, inputShape):
         self.inputDim = inputShape[1]
-        self.outputDim = self.numComponents * (2+self.kernelDim)
-        self.Wh = K.variable(np.random.normal(scale=0.5,size=(self.inputDim, self.hiddenDim)))
-        self.bh = K.variable(np.random.normal(scale=0.5,size=(self.hiddenDim)))
-        self.Wo = K.variable(np.random.normal(scale=0.5,size=(self.hiddenDim, self.outputDim)))
-        self.bo = K.variable(np.random.normal(scale=0.5,size=(self.outputDim)))
+        self.outputDim = self.numComponents * (2 + self.kernelDim)
+        self.Wh = self.add_weight(name='mdn_wh',
+                                  shape=(self.inputDim, self.hiddenDim),
+                                  initializer=random_normal(stddev=0.5))
+        self.bh = self.add_weight(name='mdn_bh',
+                                  shape=(self.hiddenDim),
+                                  initializer=random_normal(stddev=0.5))
+        self.Wo = self.add_weight(name='mdn_wo',
+                                  shape=(self.hiddenDim, self.outputDim),
+                                  initializer=random_normal(stddev=0.5))
+        self.bo = self.add_weight(name='mdn_bo',
+                                  shape=(self.outputDim),
+                                  initializer=random_normal(stddev=0.5))
 
-        self.trainable_weights = [self.Wh,self.bh,self.Wo,self.bo]
+        super(Layer, self).build(inputShape)
 
     def call(self, x, mask=None):
         hidden = K.tanh(K.dot(x, self.Wh) + self.bh)
         output = K.dot(hidden,self.Wo) + self.bo
         return output
 
-    def get_output_shape_for(self, inputShape):
+    def compute_output_shape(self, inputShape):
         return (inputShape[0], self.outputDim)
