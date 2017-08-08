@@ -1,14 +1,13 @@
 from keras import backend as K
 from keras.engine.topology import Layer
-from keras.initializers import random_normal
 import numpy as np
 import math
 
-def get_mixture_coef(output, numComonents=24, outputDim=1):
-    out_pi = output[:,:numComonents]
-    out_sigma = output[:,numComonents:2*numComonents]
-    out_mu = output[:,2*numComonents:]
-    out_mu = K.reshape(out_mu, [-1, numComonents, outputDim])
+def get_mixture_coef(output, num_components=24, output_dim=1):
+    out_pi = output[:,:num_components]
+    out_sigma = output[:,num_components:2*num_components]
+    out_mu = output[:,2*num_components:]
+    out_mu = K.reshape(out_mu, [-1, num_components, output_dim])
     out_mu = K.permute_dimensions(out_mu,[1,0,2])
     # use softmax to normalize pi into prob distribution
     max_pi = K.max(out_pi, axis=1, keepdims=True)
@@ -37,41 +36,33 @@ def get_lossfunc(out_pi, out_sigma, out_mu, y):
     result = -K.log(result + 1e-8)
     return K.mean(result)
 
-def mdn_loss(numComponents=24, outputDim=1):
+def mdn_loss(num_components=24, output_dim=1):
     def loss(y, output):
-        out_pi, out_sigma, out_mu = get_mixture_coef(output, numComponents, outputDim)
+        out_pi, out_sigma, out_mu = get_mixture_coef(output, num_components, output_dim)
         return get_lossfunc(out_pi, out_sigma, out_mu, y)
     return loss
 
 class MixtureDensity(Layer):
-    def __init__(self, kernelDim, numComponents, **kwargs):
-        self.hiddenDim = 24
-        self.kernelDim = kernelDim
-        self.numComponents = numComponents
+    def __init__(self, kernel_dim, num_components, **kwargs):
+        self.hidden_dim = 24
+        self.kernel_dim = kernel_dim
+        self.num_components = num_components
         super(MixtureDensity, self).__init__(**kwargs)
 
-    def build(self, inputShape):
-        self.inputDim = inputShape[1]
-        self.outputDim = self.numComponents * (2 + self.kernelDim)
-        self.Wh = self.add_weight(name='mdn_wh',
-                                  shape=(self.inputDim, self.hiddenDim),
-                                  initializer=random_normal(stddev=0.5))
-        self.bh = self.add_weight(name='mdn_bh',
-                                  shape=(self.hiddenDim),
-                                  initializer=random_normal(stddev=0.5))
-        self.Wo = self.add_weight(name='mdn_wo',
-                                  shape=(self.hiddenDim, self.outputDim),
-                                  initializer=random_normal(stddev=0.5))
-        self.bo = self.add_weight(name='mdn_bo',
-                                  shape=(self.outputDim),
-                                  initializer=random_normal(stddev=0.5))
+    def build(self, input_shape):
+        self.inputDim = input_shape[1]
+        self.output_dim = self.num_components * (2+self.kernel_dim)
+        self.Wh = K.variable(np.random.normal(scale=0.5,size=(self.inputDim, self.hidden_dim)))
+        self.bh = K.variable(np.random.normal(scale=0.5,size=(self.hidden_dim)))
+        self.Wo = K.variable(np.random.normal(scale=0.5,size=(self.hidden_dim, self.output_dim)))
+        self.bo = K.variable(np.random.normal(scale=0.5,size=(self.output_dim)))
 
-        super(Layer, self).build(inputShape)
+        self.trainable_weights = [self.Wh,self.bh,self.Wo,self.bo]
 
     def call(self, x, mask=None):
         hidden = K.tanh(K.dot(x, self.Wh) + self.bh)
         output = K.dot(hidden,self.Wo) + self.bo
         return output
 
-    def compute_output_shape(self, inputShape):
-        return (inputShape[0], self.outputDim)
+    def get_output_shape_for(self, input_shape):
+        return (input_shape[0], self.output_dim)
