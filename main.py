@@ -4,7 +4,7 @@ from keras.optimizers import Adam
 from keras import objectives
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d, Axes3D #<-- Note the capitalization! 
+from mpl_toolkits.mplot3d import axes3d, Axes3D #<-- Note the capitalization!
 from mdn import *
 
 def generate(output, testSize, numComponents=24, outputDim=1, M=1):
@@ -27,12 +27,12 @@ def generate(output, testSize, numComponents=24, outputDim=1, M=1):
 	std = 0
 	idx = 0
 	for j in range(0, M):
-		for i in range(0, testSize):
-		  for d in range(0, outputDim):
-		    idx = np.random.choice(24, 1, p=out_pi[i])
-		    mu = out_mu[idx,i,d]
-		    std = out_sigma[i, idx]
-		    result[i, j, d] = mu + rn[i, j]*std
+	    for i in range(0, testSize):
+                for d in range(0, outputDim):
+                    idx = np.random.choice(24, 1, p=out_pi[i])
+                    mu = out_mu[idx,i,d]
+                    std = out_sigma[i, idx]
+                    result[i, j, d] = mu + rn[i, j]*std
 	return result
 
 def oneDim2OneDim():
@@ -41,7 +41,7 @@ def oneDim2OneDim():
 	outputDim=1
 	x_data = np.float32(np.random.uniform(-10.5, 10.5, (1, sampleSize))).T
 	r_data = np.float32(np.random.normal(size=(sampleSize,1)))
-	y_data = np.float32(np.sin(0.75*x_data)*7.0+x_data*0.5+r_data*1.0)
+	y_data = np.float32(np.sin(0.75 * x_data) * 7.0 + x_data * 0.5 + r_data * 1.0)
 	#invert training data
 	temp_data = x_data
 	x_data = y_data
