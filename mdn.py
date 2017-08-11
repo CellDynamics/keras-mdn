@@ -43,19 +43,24 @@ def mdn_loss(num_components=24, output_dim=1):
     return loss
 
 class MixtureDensity(Layer):
-    def __init__(self, kernel_dim, num_components, **kwargs):
-        self.hidden_dim = 24
+    def __init__(self, kernel_dim, num_components, hidden_dim=24, init_stddev=0.075, **kwargs):
         self.kernel_dim = kernel_dim
         self.num_components = num_components
+        self.hidden_dim = hidden_dim
+        self.init_stddev = init_stddev
         super(MixtureDensity, self).__init__(**kwargs)
 
     def build(self, input_shape):
         self.inputDim = input_shape[1]
-        self.output_dim = self.num_components * (2+self.kernel_dim)
-        self.Wh = K.variable(np.random.normal(scale=0.5,size=(self.inputDim, self.hidden_dim)))
-        self.bh = K.variable(np.random.normal(scale=0.5,size=(self.hidden_dim)))
-        self.Wo = K.variable(np.random.normal(scale=0.5,size=(self.hidden_dim, self.output_dim)))
-        self.bo = K.variable(np.random.normal(scale=0.5,size=(self.output_dim)))
+        self.output_dim = self.num_components * (2 + self.kernel_dim)
+        self.Wh = K.variable(np.random.normal(scale=self.init_stddev,
+                                              size=(self.inputDim, self.hidden_dim)))
+        self.bh = K.variable(np.random.normal(scale=self.init_stddev,
+                                              size=(self.hidden_dim)))
+        self.Wo = K.variable(np.random.normal(scale=self.init_stddev,
+                                              size=(self.hidden_dim, self.output_dim)))
+        self.bo = K.variable(np.random.normal(scale=self.init_stddev,
+                                              size=(self.output_dim)))
 
         self.trainable_weights = [self.Wh,self.bh,self.Wo,self.bo]
 
