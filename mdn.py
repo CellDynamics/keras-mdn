@@ -69,5 +69,15 @@ class MixtureDensity(Layer):
         output = K.dot(hidden,self.Wo) + self.bo
         return output
 
-    def get_output_shape_for(self, input_shape):
+    def compute_output_shape(self, input_shape):
         return (input_shape[0], self.output_dim)
+
+    def get_config(self):
+        config = {
+            'kernel_dim': self.kernel_dim,
+            'num_components': self.num_components,
+            'hidden_dim': self.hidden_dim,
+            'init_stddev': self.hidden_dim,
+        }
+        base_config = super(MixtureDensity, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
