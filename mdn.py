@@ -2,6 +2,7 @@ from keras import backend as K
 from keras.engine.topology import Layer
 import numpy as np
 import math
+import tensorflow as tf
 
 def get_mixture_coef(output, num_components=24, output_dim=1):
     out_pi = output[:,:num_components]
@@ -30,6 +31,9 @@ def tf_normal(y, mu, sigma):
     return result
 
 def get_lossfunc(out_pi, out_sigma, out_mu, y):
+    out_pi = tf.Print(out_pi, [out_pi], message='out_pi', summarize=1000)
+    out_sigma = tf.Print(out_sigma, [out_sigma], message='out_sigma', summarize=1000)
+    out_mu = tf.Print(out_mu, [out_mu], message='out_mu', summarize=1000)
     result = tf_normal(y, out_mu, out_sigma)
     result = result * out_pi
     result = K.sum(result, axis=1, keepdims=True)
