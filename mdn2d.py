@@ -2,6 +2,19 @@ import numpy as np
 import math
 import tensorflow as tf
 
+def mdn_loss_2d(y_true, y_pred):
+    z_pi, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr = get_mixture_coef(y_pred)
+    x1_data, x2_data = tf.split(y_true, axis=1, num_or_size_splits=2)
+
+    result0 = tf_2d_normal(x1_data, x2_data, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr)
+    # implementing eq # 26 of http://arxiv.org/abs/1308.0850
+    epsilon = 1e-20
+    result0 = tf.Print(result0, [result0], summarize=300)
+    result1 = tf.multiply(result0, z_pi)
+    result1 = tf.reduce_sum(result1, 1, keep_dims=True)
+    result1 = -tf.log(tf.maximum(result1, 1e-20)) # at the beginning, some errors are exactly zero.
+    return tf.reduce_sum(result1)
+
 def tf_2d_normal(x1, x2, mu1, mu2, s1, s2, rho):
     # eq # 24 and 25 of http://arxiv.org/abs/1308.0850
     norm1 = tf.subtract(x1, mu1)
@@ -14,26 +27,12 @@ def tf_2d_normal(x1, x2, mu1, mu2, s1, s2, rho):
     result = tf.div(result, denom)
     return result
 
-def mdn_loss_2d(y_true, y_pred):
-    z_pi, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr = get_mixture_coef(y_pred)
-    x1_data, x2_data = tf.split(y_true, axis=1, num_or_size_splits=2)
-
-    result0 = tf_2d_normal(x1_data, x2_data, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr)
-    # implementing eq # 26 of http://arxiv.org/abs/1308.0850
-    epsilon = 1e-20
-    result1 = tf.multiply(result0, z_pi)
-    result1 = tf.reduce_sum(result1, 1, keep_dims=True)
-    result1 = -tf.log(tf.maximum(result1, 1e-20)) # at the beginning, some errors are exactly zero.
-    return tf.reduce_sum(result1)
-
 def get_mixture_coef(output):
     # returns the tf slices containing mdn dist params
     # ie, eq 18 -> 23 of http://arxiv.org/abs/1308.0850
-    print(output)
     z_pi, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr = tf.split(output, axis=1, num_or_size_splits=6)
 
     # process output z's into MDN paramters
-
     # softmax all the pi's:
     max_pi = tf.reduce_max(z_pi, 1, keep_dims=True)
     z_pi = tf.subtract(z_pi, max_pi)
