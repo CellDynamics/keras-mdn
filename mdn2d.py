@@ -8,9 +8,6 @@ def mdn_loss_2d(y_true, y_pred):
 
     result0 = tf_2d_normal(x1_data, x2_data, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr)
     # implementing eq # 26 of http://arxiv.org/abs/1308.0850
-    epsilon = 1e-20
-    result0 = tf.Print(result0, [result0], message='result', summarize=300)
-    z_pi = tf.Print(z_pi, [z_pi], message='z_pi', summarize=300)
     result1 = tf.multiply(result0, z_pi)
     result1 = tf.reduce_sum(result1, 1, keep_dims=True)
     result1 = -tf.log(tf.maximum(result1, 1e-20)) # at the beginning, some errors are exactly zero.
