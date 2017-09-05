@@ -11,7 +11,8 @@ def mdn_loss_2d(y_true, y_pred):
     result1 = tf.multiply(result0, z_pi)
     result1 = tf.reduce_sum(result1, 1, keep_dims=True)
     result1 = -tf.log(tf.maximum(result1, 1e-20)) # at the beginning, some errors are exactly zero.
-    return tf.reduce_sum(result1)
+    # result1 = tf.Print(result1, [result1], summarize=300)
+    return tf.reduce_mean(result1)
 
 def tf_2d_normal(x1, x2, mu1, mu2, s1, s2, rho):
     # eq # 24 and 25 of http://arxiv.org/abs/1308.0850
