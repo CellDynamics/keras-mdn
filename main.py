@@ -8,7 +8,19 @@ from mpl_toolkits.mplot3d import Axes3D  # <-- Note the capitalization!
 from mdn import *
 
 
-def generate(output, testSize, numComponents=24, outputDim=1, M=1):  # XXX What is M
+def generate(output, testSize, numComponents=24, outputDim=1, M=1):
+    """
+    Decode network MDN outputs and retrieve values in taarget space.
+
+    Args:
+        output (numpy)      - network output, vector to be converted to MDN coefficients
+        testSize (int)      - length of the target vector (and also dimension of the `output`)
+        numComponents (int) - number of MDN components used to get `outputs`
+        outputDim (int)     - network output dimensionality (as target vector, number of network outputs)
+        M (int)             - number of output values generated for each network input. Because we are talking about
+                              probablities, for each input `x` value we can obtain `M` outputs within Gaussian
+                              distribution given by mi and sigma found by network.
+    """
     out_pi, out_sigma, out_mu = get_mixture_coef(output, num_components=numComponents, output_dim=outputDim)
     # convert tensors to numpy
     out_pi = eval(out_pi)
